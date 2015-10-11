@@ -1,5 +1,7 @@
 /*
 ** selectserver.c -- a cheezy multiperson chat server
+* credit to Beej
+* http://beej.us/guide/bgnet/output/html/multipage/index.html
 */
 
 #include <stdio.h>
