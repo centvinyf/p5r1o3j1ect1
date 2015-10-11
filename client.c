@@ -23,15 +23,15 @@ int main(int argc, char **argv)
     struct timeval tv;
     int retval, maxfd; 
     
-    /*建立socket*/
+    /*create socket*/
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1){
         perror("socket");
         exit(errno);
     }else
-        printf("socket create success!\n");
+        printf("[STATUS]socket created successfully!\n");
 
     
-    /*设置服务器ip*/
+    /*setting server ip*/
     memset(&s_addr,0,sizeof(s_addr));
     s_addr.sin_family = AF_INET;
      s_addr.sin_port = htons(PORT);
@@ -39,12 +39,12 @@ int main(int argc, char **argv)
         perror(argv[1]);
         exit(errno);
     }
-    /*开始连接服务器*/ 
+    /*start connection*/ 
     if(connect(sockfd,(struct sockaddr*)&s_addr,sizeof(struct sockaddr)) == -1){
         perror("connect");
         exit(errno);
     }else
-        printf("conncet success!\n");
+        printf("[STATUS]conncet successfully!\n");
     
     while(1){
         FD_ZERO(&rfds);
@@ -57,15 +57,15 @@ int main(int argc, char **argv)
         tv.tv_usec = 0;
         retval = select(maxfd+1, &rfds, NULL, NULL, &tv);
         if(retval == -1){
-            printf("select出错，客户端程序退出\n");
+            printf("[ERROR]select error，server down\n");
             break;
         }else if(retval == 0){
             // printf("waiting...\n");
             continue;
         }else{
-            /*服务器发来了消息*/
+            /*A message from the server*/
             if(FD_ISSET(sockfd,&rfds)){
-                /******接收消息*******/
+                /******Receive message*******/
                 bzero(buf,BUFLEN);
                 len = recv(sockfd,buf,BUFLEN,0);
                 if(len > 0)
@@ -74,15 +74,15 @@ int main(int argc, char **argv)
                     printf("The other side says: %s\n",buf);
                 else{
                     if(len < 0 )
-                        printf("接受消息失败！\n");
+                        printf("[ERROR]Fail to receive messages\n");
                     else
                         printf("[SERVER CLOSED]The server is closed, end of chatting\n");
                 break; 
                 }
             }
-            /*用户输入信息了,开始处理信息并发送*/
+            /*Client is typing,handle the comments*/
             if(FD_ISSET(0, &rfds)){ 
-                /******发送消息*******/ 
+                /******send message*******/ 
                 bzero(buf,BUFLEN);
                 fgets(buf,BUFLEN,stdin);
                
@@ -90,8 +90,12 @@ int main(int argc, char **argv)
                 //     printf("conversation quit successfully!\n");
                 //     break;
                 // }
-                 if(!strncasecmp(buf,"helpme",6)){
-                    printf("client is asking for help\n");
+                 if(!strncasecmp(buf,"help",4)){
+                     printf("[CLEAR] Clear your screen\n");
+                     printf("[CHAT] Ask the server to get a chatting partner\n");
+                     printf("[FLAG] In Process of chatting, report your partner and quit the conversation\n");
+                     printf("[HELP] Print all the comments that the clients can use\n");
+                     printf("[QUIT] Quit the current chatting room\n");
                     // continue;
                 }
                  if(!strncasecmp(buf,"clear",5)){
@@ -107,7 +111,7 @@ int main(int argc, char **argv)
                  }
                     // printf("\t消息发送成功：%s\n",buf); 
                     else{
-                    printf("消息发送失败!\n");
+                    printf("[ERROR]Fail to send messages!\n");
                     break; 
                 } 
                 }
