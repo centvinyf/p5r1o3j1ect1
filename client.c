@@ -73,9 +73,9 @@ int main(int argc, char **argv)
                     // printf("服务器发来的消息是：%s\n",buf);
                     printf("The other side says: %s\n",buf);
                 else{
-                    if(len < 0 )
+                    // if(len < 0 )
                         printf("[ERROR]Fail to receive messages\n");
-                    else
+                    // else
                         printf("[SERVER CLOSED]The server is closed, end of chatting\n");
                 break; 
                 }

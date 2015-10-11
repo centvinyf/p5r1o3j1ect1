@@ -74,7 +74,7 @@ int main(void)
 	
 	for(p = ai; p != NULL; p = p->ai_next) {
     	listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        printf("%d\n", listener); //DEBUG
+        // printf("%d\n", listener); //DEBUG
 		if (listener < 0) { 
 			continue;
 		}
