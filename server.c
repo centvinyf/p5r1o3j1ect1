@@ -228,6 +228,7 @@ int main(void)
                                 send(i,"[FROM SERVER]Your chatting ends\n",256,0);
                                 partner_fd[partner_fd[i]]=-1;
                             partner_fd[i]=-1;
+                            flag=-1;
                         }
                         if(!strncasecmp(buf,"FLAG",4))
                         {
