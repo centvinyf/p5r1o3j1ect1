@@ -13,7 +13,7 @@
 #include <netdb.h>
 
 #define PORT "9034"   // port we're listening on
-
+#define BUFLEN 1024
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -96,7 +96,7 @@ int main(void)
 
     // add the listener to the master set
     FD_SET(listener, &master);
-
+    FD_SET(0,&master);
     // keep track of the biggest file descriptor
     fdmax = listener; // so far, it's this one
     partner_fd = (int *)malloc(fdmax * sizeof(int));
@@ -115,10 +115,17 @@ int main(void)
             perror("select");
             exit(4);
         }
-
+            if(FD_ISSET(0, &read_fds))
+                {
+                    bzero(buf,BUFLEN);
+                    fgets(buf,BUFLEN,stdin);
+                    printf("%s",buf);
+                    continue;
+                }
         // run through the existing connections looking for data to read
         for(i = 0; i <= fdmax; i++) {
             if (FD_ISSET(i, &read_fds)) { // we got one!!
+                
                 if (i == listener) {    //there is a new
                     // handle new connections
                     addrlen = sizeof remoteaddr;
@@ -152,6 +159,7 @@ int main(void)
                         if (nbytes == 0) {
                             // connection closed
                             printf("selectserver: socket %d hung up\n", i);
+                            send(partner_fd[i],"[FROM SERVER]Your chatting partner left the room",256,0);
                         } else {
                             perror("recv");
                         }
@@ -183,10 +191,21 @@ int main(void)
                                 if(i==waitingfd)continue;
                                 partner_fd[i] = waitingfd;   
                                 partner_fd[waitingfd] = i;
+                                send(partner_fd[i],"[FROM SERVER]Your chatting starts, say \"hi\" to your partner:)\n",256,0);
+                                send(i,"[FROM SERVER]Your chatting starts, say \"hi\" to your partner:)\n",256,0);
                                 flag = -1;
                                 waitingfd = -1;
                             }// another client wants to chat
                         }
+                        if(!strncasecmp(buf,"QUIT",4))
+                        {
+                            
+                            send(partner_fd[i],"[FROM SERVER]Your chatting ends because your chatting mate quits the room.\n",256,0);
+                                send(i,"[FROM SERVER]Your chatting ends\n",256,0);
+                                partner_fd[partner_fd[i]]=-1;
+                            partner_fd[i]=-1;
+                        }
+
                     }
                 } // END handle data from client
             } // END got new incoming connection

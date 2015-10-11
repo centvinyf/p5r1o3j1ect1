@@ -71,12 +71,12 @@ int main(int argc, char **argv)
                 if(len > 0)
                    
                     // printf("服务器发来的消息是：%s\n",buf);
-                    printf("Your chatting mate says: %s\n",buf);
+                    printf("The other side says: %s\n",buf);
                 else{
                     if(len < 0 )
                         printf("接受消息失败！\n");
                     else
-                        printf("服务器退出了，聊天终止！\n");
+                        printf("[SERVER CLOSED]The server is closed, end of chatting\n");
                 break; 
                 }
             }
@@ -86,10 +86,10 @@ int main(int argc, char **argv)
                 bzero(buf,BUFLEN);
                 fgets(buf,BUFLEN,stdin);
                
-                if(!strncasecmp(buf,"quit",4)){
-                    printf("conversation quit successfully!\n");
-                    break;
-                }
+                // if(!strncasecmp(buf,"quit",4)){
+                //     printf("conversation quit successfully!\n");
+                //     break;
+                // }
                  if(!strncasecmp(buf,"helpme",6)){
                     printf("client is asking for help\n");
                     // continue;
