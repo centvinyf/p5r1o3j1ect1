@@ -107,6 +107,7 @@ int main(void)
     // add the listener to the master set
     FD_SET(listener, &master);
     FD_SET(0,&master);
+
     // keep track of the biggest file descriptor
     fdmax = listener; // so far, it's this one
     partner_fd = (int *)malloc(fdmax * sizeof(int));
@@ -179,7 +180,6 @@ int main(void)
                         }
 
                     } else {   // we got some data from a client
-                        printf("%d\n", flag);
                         // send to partner client
                         for(j = 0; j <= fdmax; j++) {
                             if (FD_ISSET(j, &master) && (partner_fd[j] == i)) {
@@ -189,7 +189,8 @@ int main(void)
                             }
                         }
                         // Parsing CHAT command
-                        if (!strncasecmp(buf, "CHAT",4)) {
+                        if (!strncasecmp(buf, "CHAT",4)) 
+                        {
                             if (flag == -1){
                                 if(partner_fd[i]==-1)
                                 {
@@ -220,7 +221,9 @@ int main(void)
                                 
                                 
                             }// another client wants to chat
+                            printf("%d\n", flag);
                         }
+
                         if(!strncasecmp(buf,"QUIT",4))
                         {
                             
@@ -230,6 +233,7 @@ int main(void)
                             partner_fd[i]=-1;
                             flag=-1;
                         }
+
                         if(!strncasecmp(buf,"FLAG",4))
                         {
                             hate_fd[i]=partner_fd[i];
@@ -238,8 +242,6 @@ int main(void)
                                 partner_fd[partner_fd[i]]=-1;
                                 partner_fd[i]=-1;
                         }
-
-
                     }
                 } // END handle data from client
             } // END got new incoming connection
