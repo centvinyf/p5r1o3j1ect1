@@ -189,7 +189,7 @@ int main(void)
                             }
                         }
                         // Parsing CHAT command
-                        if (!strncasecmp(buf, "CHAT",4)) 
+                        if ((strcmp(buf,"CHAT\n")==0)) 
                         {
                             if (flag == -1){
                                 if(partner_fd[i]==-1)
@@ -224,7 +224,7 @@ int main(void)
                             printf("%d\n", flag);
                         }
 
-                        if(!strncasecmp(buf,"QUIT",4))
+                        if((strcmp(buf,"QUIT\n")==0))
                         {
                             
                             send(partner_fd[i],"[FROM SERVER]Your chatting ends because your chatting mate quits the room.\n",256,0);
@@ -234,7 +234,7 @@ int main(void)
                             flag=-1;
                         }
 
-                        if(!strncasecmp(buf,"FLAG",4))
+                        if((strcmp(buf,"FLAG\n")==0))
                         {
                             hate_fd[i]=partner_fd[i];
                             send(partner_fd[i],"[FROM SERVER]Your chatting ends because your chatting mate FLAGed you.\n",256,0);
