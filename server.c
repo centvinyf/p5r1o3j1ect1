@@ -15,12 +15,12 @@
 
 #define PORT "9034"   // port we're listening on
 #define BUFLEN 1024
-#define MAX_WAITING 10
+#define MAX_WAITING 20
 // get sockaddr, IPv4 or IPv6:
     int flag = -1;    // the indicator of clients waiting for chat
     int *partner_fd;
     int *hate_fd;
-    int blacklist[10];
+    int blacklist[20];
     int number_of_blacked=0;
     fd_set master;    // master file descriptor list
     fd_set read_fds;
@@ -29,7 +29,7 @@
     int flagged_number=0;
     int number_of_clients=0;
     int number_of_clients_in_chatting=0;
-    int chatting[10];
+    int chatting[20];
 
     int waitingfd;
     int wait_number;
@@ -69,8 +69,12 @@ int intIsinSet(int a[],int x,int n)
 }
 void*  admin()
 {
-    for(int i =0;i<10;i++)
+    for(int i =0;i<20;i++)
+      {
         blacklist[i]=-1;
+        chatting[i]=-1;
+      }  
+
     while(scanf("%s",buf2)!=EOF)
     {
         // // if(fgets(buf2,256,stdin) != NULL)
@@ -118,12 +122,12 @@ void*  admin()
             {
                 int tem;
                 printf("The BLACKLIST is as follows:\n");
-                for(int i =0;i<10;i++)
+                for(int i =0;i<20;i++)
                 if(blacklist[i]!=-1)
                     printf("%d\n",blacklist[i]);
                 printf("Please enter the socket you want to unblock\n");
                 scanf("%d",&tem);
-                for(int i =0;i<10;i++)
+                for(int i =0;i<20;i++)
                 if(blacklist[i]==tem)
                 {
                     blacklist[i]=-1;
@@ -134,11 +138,14 @@ void*  admin()
             else if(!strncasecmp(buf2,"THROWOUT",8))
             {
                 int tem;
-                printf("The current chattings in session are:\n");
+                
+                if(number_of_clients_in_chatting>0)
+                {
+                    printf("The current chattings in session are:\n");
                 for(int i=0;i<number_of_clients_in_chatting;i+=2)
                     printf("User %d is chatting with user %d\n",chatting[i],chatting[i+1]);
                 printf("Please enter the socket of user that you want to throwout:\n");
-                scanf("%d",&tem);
+                    scanf("%d",&tem);
                 
                 printf("User %d has been thrown out successfully!\n",tem);
                 send(partner_fd[tem],"[FROM SERVER]Your chatting ends because your chatting mate has been thrown out by the ADMIN\n",256,0);
@@ -146,16 +153,30 @@ void*  admin()
                 for(int i=0;i<number_of_clients_in_chatting;i++)
                 {
                     if(chatting[i]==partner_fd[tem])
-                         chatting[i]=-1;break;
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-1];
+                                chatting[number_of_clients_in_chatting-1]=chatting[i];
+                                chatting[i]=temp;break;
+                         }
                 }
                 for(int j=0;j<number_of_clients_in_chatting;j++)
                 {
                     if(chatting[j]==tem)
-                        chatting[j]=-1;break;
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-2];
+                                chatting[number_of_clients_in_chatting-2]=chatting[j];
+                                chatting[j]=temp;break;
+                         }
                 }   
                 partner_fd[partner_fd[tem]]=-1;
                 partner_fd[tem]=-1;
                 number_of_clients_in_chatting-=2;
+                }
+                else
+                {
+                    printf("No current chatting is in session!\n");
+                }
+                
                
             }
             else if(!strncasecmp(buf2,"CLEAR",5))
@@ -319,7 +340,7 @@ int main(void)
                             }
                         }
                         // Parsing CHAT command
-                        if ((strcmp(buf,"CHAT\n")==0)) 
+                        if (!strncasecmp(buf,"CHAT",4)) 
                         {
                             if (flag == -1){
                                 if(partner_fd[i]==-1)
@@ -334,7 +355,7 @@ int main(void)
                                 else{
                                     for(int k=0;k<wait_number+1;k++)
                                     {
-                                        if(waitingfd!=hate_fd[i]&&hate_fd[waitingfd]!=i&&waitingfd!=-1&&!intIsinSet(blacklist,i,10))
+                                        if(waitingfd!=hate_fd[i]&&hate_fd[waitingfd]!=i&&waitingfd!=-1&&!intIsinSet(blacklist,i,20))
                                 {
                                     partner_fd[i] = waitingfd;   
                                 partner_fd[waitingfd] = i;
@@ -357,22 +378,60 @@ int main(void)
                             // printf("%d\n", flag);
                         }
 
-                        if((strcmp(buf,"QUIT\n")==0))
+                        if(!strncasecmp(buf,"QUIT",4))
                         {
                             
                             send(partner_fd[i],"[FROM SERVER]Your chatting ends because your chatting mate quits the room.\n",256,0);
                                 send(i,"[FROM SERVER]Your chatting ends\n",256,0);
+                                for(int i=0;i<number_of_clients_in_chatting;i++)
+                {
+                    if(chatting[i]==partner_fd[i])
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-1];
+                                chatting[number_of_clients_in_chatting-1]=chatting[i];
+                                chatting[i]=temp;break;
+                         }
+                }
+                for(int j=0;j<number_of_clients_in_chatting;j++)
+                {
+                    if(chatting[j]==i)
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-2];
+                                chatting[number_of_clients_in_chatting-2]=chatting[j];
+                                chatting[j]=temp;break;
+                         }
+                }   
                                 partner_fd[partner_fd[i]]=-1;
                             partner_fd[i]=-1;
                             flag=-1;
                             number_of_clients_in_chatting-=2;
+                            chatting[number_of_clients_in_chatting]=-1;
+                            chatting[number_of_clients_in_chatting+1]=-1;
                         }
 
-                        if((strcmp(buf,"FLAG\n")==0))
+                        if(!strncasecmp(buf,"FLAG",4))
                         {
                             hate_fd[i]=partner_fd[i];
                             send(partner_fd[i],"[FROM SERVER]Your chatting ends because your chatting mate FLAGed you.\n",256,0);
                                 send(i,"[FROM SERVER]Flag successfully, your chatting ends\n",256,0);
+                                for(int i=0;i<number_of_clients_in_chatting;i++)
+                {
+                    if(chatting[i]==partner_fd[i])
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-1];
+                                chatting[number_of_clients_in_chatting-1]=chatting[i];
+                                chatting[i]=temp;break;
+                         }
+                }
+                for(int j=0;j<number_of_clients_in_chatting;j++)
+                {
+                    if(chatting[j]==i)
+                         {
+                                int temp=chatting[number_of_clients_in_chatting-2];
+                                chatting[number_of_clients_in_chatting-2]=chatting[j];
+                                chatting[j]=temp;break;
+                         }
+                }   
                                 partner_fd[partner_fd[i]]=-1;
                                 partner_fd[i]=-1;
                                 flagged_number++;
