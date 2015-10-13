@@ -146,7 +146,12 @@ void*  admin()
                     printf("User %d is chatting with user %d\n",chatting[i],chatting[i+1]);
                 printf("Please enter the socket of user that you want to throwout:\n");
                     scanf("%d",&tem);
-                
+                if(!intIsinSet(chatting,tem,number_of_clients_in_chatting))
+                {
+                    printf("Invalid Input,Command QUIT!\n");
+                    break;
+                }
+                    
                 printf("User %d has been thrown out successfully!\n",tem);
                 send(partner_fd[tem],"[FROM SERVER]Your chatting ends because your chatting mate has been thrown out by the ADMIN\n",256,0);
                 send(tem,"[FROM SERVER]Your chatting ends because you have been thrown out by the ADMIN\n",256,0);
